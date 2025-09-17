@@ -29,44 +29,52 @@ type Page = 'dashboard' | 'calendar' | 'market' | 'plant-analysis' | 'my-farm' |
 
 export function DashboardVariation1({ onNavigate }: DashboardProps) {
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       {/* Welcome Section */}
-      <div className="mb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="mb-6 sm:mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <TodayTaskCard />
-              <YieldForecastCard />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="w-full">
+                <TodayTaskCard />
+              </div>
+              <div className="w-full">
+                <YieldForecastCard />
+              </div>
             </div>
           </div>
-          <div>
+          <div className="w-full">
             <FarmHealthCard />
           </div>
         </div>
       </div>
 
       {/* Secondary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <PestAlertCard />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="w-full">
+          <PestAlertCard />
+        </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Weather Forecast</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {['Today', 'Tomorrow', 'Day 3'].map((day, index) => (
-                <div key={day} className="flex items-center justify-between">
-                  <span>{day}</span>
-                  <div className="flex items-center">
-                    <Sun className="w-4 h-4 mr-2 text-yellow-500" />
-                    <span>{28 + index}°C</span>
+        <div className="w-full">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base sm:text-lg">Weather Forecast</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {['Today', 'Tomorrow', 'Day 3'].map((day, index) => (
+                  <div key={day} className="flex items-center justify-between text-sm sm:text-base">
+                    <span>{day}</span>
+                    <div className="flex items-center">
+                      <Sun className="w-4 h-4 mr-2 text-yellow-500" />
+                      <span>{28 + index}°C</span>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         <Card>
           <CardHeader>

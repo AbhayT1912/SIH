@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Volume2 } from 'lucide-react';
 import { Button } from "./ui/button";
 
@@ -113,7 +113,7 @@ const translations = {
     'morning': 'सुबह',
     'afternoon': 'दोपहर',
     'night': 'रात',
-    'today': 'आज',
+    'current-day': 'आज',
     'yesterday': 'कल',
     'tomorrow': 'कल',
     'this-week': 'इस सप्ताह',
@@ -403,7 +403,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>('hi');
 
   const t = (key: string, fallback?: string): string => {
-    return translations[language][key] || fallback || key;
+    return (translations[language] as Record<string, string>)[key] || fallback || key;
   };
 
   const speak = (text: string) => {
@@ -431,17 +431,47 @@ export function useLanguage() {
 
 // Speaker Button Component for text-to-speech
 export function SpeakerButton({ text, className = "" }: { text: string; className?: string }) {
+  const [isPlaying, setIsPlaying] = useState(false);
   const { speak } = useLanguage();
+
+  const toggleSpeech = () => {
+    if (isPlaying) {
+      // Stop any ongoing speech
+      window.speechSynthesis.cancel();
+      setIsPlaying(false);
+    } else {
+      // Start new speech
+      window.speechSynthesis.cancel(); // Cancel any previous speech first
+      speak(text);
+      setIsPlaying(true);
+
+      // Listen for when speech ends
+      const handleSpeechEnd = () => {
+        setIsPlaying(false);
+      };
+
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.onend = handleSpeechEnd;
+      utterance.onerror = handleSpeechEnd;
+    }
+  };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
 
   return (
     <Button
-      variant="ghost"
+      variant={isPlaying ? "default" : "ghost"}
       size="sm"
-      className={`p-1 h-auto w-auto hover:bg-primary/10 ${className}`}
-      onClick={() => speak(text)}
-      aria-label="Listen to text"
+      className={`p-1 h-auto w-auto hover:bg-primary/10 ${isPlaying ? 'bg-primary/20' : ''} ${className}`}
+      onClick={toggleSpeech}
+      aria-label={isPlaying ? "Stop speaking" : "Listen to text"}
     >
-      <Volume2 className="w-4 h-4 text-primary" />
+      <Volume2 className={`w-4 h-4 ${isPlaying ? 'text-primary/80' : 'text-primary'}`} />
     </Button>
   );
 }
