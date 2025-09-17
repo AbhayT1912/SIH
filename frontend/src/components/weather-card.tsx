@@ -86,45 +86,45 @@ export function WeatherCard() {
 
   return (
     <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 hover:shadow-lg transition-all duration-300">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between" style={{ fontFamily: 'Poppins' }}>
+      <CardHeader className="pb-2 sm:pb-4">
+        <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0" style={{ fontFamily: 'Poppins' }}>
           <div className="flex items-center">
-            {greeting}
+            <span className="text-base sm:text-lg">{greeting}</span>
             <SpeakerButton text={greeting} className="ml-2" />
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-4 sm:space-y-0">
           <div className="flex items-center">
             <img 
               src={weatherIcon} 
               alt={weatherData.weather[0].description}
-              className="w-16 h-16"
+              className="w-12 h-12 sm:w-16 sm:h-16"
             />
-            <div className="ml-4">
-              <div className="text-3xl font-bold">
+            <div className="ml-3 sm:ml-4">
+              <div className="text-2xl sm:text-3xl font-bold">
                 {Math.round(weatherData.main.temp)}°C
               </div>
-              <div className="text-gray-600 capitalize">
+              <div className="text-sm sm:text-base text-gray-600 capitalize">
                 {weatherData.weather[0].description}
               </div>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 text-center">
             <div>
               <div className="flex items-center justify-center text-blue-600">
-                <Wind className="w-4 h-4 mr-1" />
-                <span>{weatherData.wind.speed} m/s</span>
+                <Wind className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+                <span className="text-sm sm:text-base">{weatherData.wind.speed} m/s</span>
               </div>
-              <div className="text-sm text-gray-600">{t('wind')}</div>
+              <div className="text-xs sm:text-sm text-gray-600">{t('wind')}</div>
             </div>
             <div>
               <div className="flex items-center justify-center text-blue-600">
-                <Cloud className="w-4 h-4 mr-1" />
-                <span>{weatherData.main.humidity}%</span>
+                <Cloud className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
+                <span className="text-sm sm:text-base">{weatherData.main.humidity}%</span>
               </div>
-              <div className="text-sm text-gray-600">{t('humidity')}</div>
+              <div className="text-xs sm:text-sm text-gray-600">{t('humidity')}</div>
             </div>
           </div>
         </div>

@@ -310,35 +310,35 @@ export function MarketPage() {
   return (
     <div className="max-w-7xl mx-auto p-6">
       {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800" style={{ fontFamily: 'Poppins' }}>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800" style={{ fontFamily: 'Poppins' }}>
               बाजार भाव
             </h1>
-            <p className="text-gray-600 mt-1">आज की ताजी कीमतें और बाजार का विश्लेषण</p>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">आज की ताजी कीमतें और बाजार का विश्लेषण</p>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              <RefreshCw className="w-4 h-4 mr-2" />
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+              <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               रीफ्रेश करें
             </Button>
-            <Button variant="outline" size="sm">
-              <Bell className="w-4 h-4 mr-2" />
+            <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+              <Bell className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
               अलर्ट सेट करें
             </Button>
           </div>
         </div>
 
         {/* Search Bar */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+        <div className="relative max-w-full sm:max-w-md">
+          <Search className="absolute left-3 top-2.5 sm:top-3 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
           <Input
             placeholder="फसल खोजें जैसे सोयाबीन..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 py-3"
+            className="pl-10 py-2 sm:py-3 text-sm sm:text-base"
           />
         </div>
       </div>
@@ -354,9 +354,9 @@ export function MarketPage() {
       </div>
 
       {/* Featured Crops Carousel */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-4">आज की खास फसलें</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="mb-6 sm:mb-8">
+        <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">आज की खास फसलें</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {featuredCrops.map((crop) => (
             <motion.div
               key={crop.id}
@@ -365,29 +365,29 @@ export function MarketPage() {
               onClick={() => setSelectedCrop(crop)}
             >
               <Card className="overflow-hidden border-2 border-transparent hover:border-primary/20 transition-all">
-                <div className="relative h-32">
+                <div className="relative h-24 sm:h-32">
                   <ImageWithFallback
                     src={crop.image}
                     alt={crop.nameHindi}
                     className="w-full h-full object-cover"
                   />
                   <div className="absolute top-2 right-2">
-                    <Badge className="bg-yellow-500 text-white">
+                    <Badge className="bg-yellow-500 text-white text-xs">
                       <Star className="w-3 h-3 mr-1" />
                       ट्रेंडिंग
                     </Badge>
                   </div>
                 </div>
-                <CardContent className="p-4">
+                <CardContent className="p-3 sm:p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">{crop.nameHindi}</h3>
+                    <h3 className="font-semibold text-sm sm:text-base">{crop.nameHindi}</h3>
                     <div className="flex items-center">
                       {crop.changePercent > 0 ? (
-                        <ArrowUpRight className="w-4 h-4 text-green-600" />
+                        <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
                       ) : (
-                        <ArrowDownRight className="w-4 h-4 text-red-600" />
+                        <ArrowDownRight className="w-3 h-3 sm:w-4 sm:h-4 text-red-600" />
                       )}
-                      <span className={`text-sm ${
+                      <span className={`text-xs sm:text-sm ${
                         crop.changePercent > 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
                         {crop.changePercent > 0 ? '+' : ''}{crop.changePercent}%
@@ -396,12 +396,14 @@ export function MarketPage() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-2xl font-bold text-primary">₹{crop.currentPrice.toLocaleString()}</p>
-                      <p className="text-sm text-gray-600">प्रति {crop.unit}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-primary">₹{crop.currentPrice.toLocaleString()}</p>
+                      <p className="text-xs sm:text-sm text-gray-600">प्रति {crop.unit}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-600">{crop.market}</p>
-                      <SimpleSparkline data={crop.weeklyData} color={crop.changePercent > 0 ? '#10B981' : '#EF4444'} />
+                      <p className="text-xs sm:text-sm text-gray-600">{crop.market}</p>
+                      <div className="w-16 sm:w-20">
+                        <SimpleSparkline data={crop.weeklyData} color={crop.changePercent > 0 ? '#10B981' : '#EF4444'} />
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -412,17 +414,17 @@ export function MarketPage() {
       </div>
 
       {/* Main Crops List */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="lg:col-span-2">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>सभी फसलों की कीमतें</CardTitle>
+            <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0">
+              <CardTitle className="text-base sm:text-lg">सभी फसलों की कीमतें</CardTitle>
               <div className="flex items-center space-x-2">
-                <Filter className="w-4 h-4" />
+                <Filter className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <select 
                   value={sortBy} 
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="text-sm border rounded px-2 py-1"
+                  className="text-xs sm:text-sm border rounded px-2 py-1"
                 >
                   <option value="change">परिवर्तन के अनुसार</option>
                   <option value="price">कीमत के अनुसार</option>
@@ -431,16 +433,16 @@ export function MarketPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {sortedCrops.map((crop) => (
                   <motion.div
                     key={crop.id}
                     whileHover={{ scale: 1.01 }}
                     onClick={() => setSelectedCrop(crop)}
-                    className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:shadow-md transition-all"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 border rounded-lg cursor-pointer hover:shadow-md transition-all space-y-2 sm:space-y-0"
                   >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-full overflow-hidden">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full overflow-hidden flex-shrink-0">
                         <ImageWithFallback
                           src={crop.image}
                           alt={crop.nameHindi}
@@ -448,14 +450,14 @@ export function MarketPage() {
                         />
                       </div>
                       <div>
-                        <h3 className="font-medium">{crop.nameHindi}</h3>
-                        <p className="text-sm text-gray-600">{crop.category}</p>
+                        <h3 className="font-medium text-sm sm:text-base">{crop.nameHindi}</h3>
+                        <p className="text-xs sm:text-sm text-gray-600">{crop.category}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-6">
+                    <div className="flex items-center justify-between sm:justify-end sm:space-x-4 lg:space-x-6">
                       <div className="text-right">
-                        <p className="font-bold">₹{crop.currentPrice.toLocaleString()}</p>
+                        <p className="font-bold text-sm sm:text-base">₹{crop.currentPrice.toLocaleString()}</p>
                         <p className="text-xs text-gray-600">प्रति {crop.unit}</p>
                       </div>
                       
@@ -464,22 +466,22 @@ export function MarketPage() {
                           crop.changePercent > 0 ? 'text-green-600' : 'text-red-600'
                         }`}>
                           {crop.changePercent > 0 ? (
-                            <TrendingUp className="w-4 h-4 mr-1" />
+                            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                           ) : (
-                            <TrendingDown className="w-4 h-4 mr-1" />
+                            <TrendingDown className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                           )}
-                          <span className="font-medium">
+                          <span className="font-medium text-xs sm:text-sm">
                             {crop.changePercent > 0 ? '+' : ''}₹{Math.abs(crop.change)}
                           </span>
                         </div>
-                        <p className={`text-sm ${
+                        <p className={`text-xs sm:text-sm ${
                           crop.changePercent > 0 ? 'text-green-600' : 'text-red-600'
                         }`}>
                           {crop.changePercent > 0 ? '+' : ''}{crop.changePercent}%
                         </p>
                       </div>
 
-                      <div className="w-20 h-10">
+                      <div className="hidden sm:block w-16 sm:w-20 h-8 sm:h-10">
                         <SimpleSparkline 
                           data={crop.weeklyData} 
                           color={crop.changePercent > 0 ? '#10B981' : '#EF4444'} 
@@ -494,61 +496,61 @@ export function MarketPage() {
         </div>
 
         {/* Market Insights Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <BarChart3 className="w-5 h-5 mr-2" />
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-base sm:text-lg">
+                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 बाजार सूझ-बूझ
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="p-3 bg-green-50 rounded-lg">
+            <CardContent className="space-y-3 sm:space-y-4">
+              <div className="p-2.5 sm:p-3 bg-green-50 rounded-lg">
                 <div className="flex items-center text-green-700 mb-1">
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  <span className="font-medium">तेजी</span>
+                  <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  <span className="font-medium text-sm sm:text-base">तेजी</span>
                 </div>
-                <p className="text-sm text-green-600">सोयाबीन और मसालों की कीमतों में वृद्धि</p>
+                <p className="text-xs sm:text-sm text-green-600">सोयाबीन और मसालों की कीमतों में वृद्धि</p>
               </div>
               
-              <div className="p-3 bg-red-50 rounded-lg">
+              <div className="p-2.5 sm:p-3 bg-red-50 rounded-lg">
                 <div className="flex items-center text-red-700 mb-1">
-                  <TrendingDown className="w-4 h-4 mr-2" />
-                  <span className="font-medium">मंदी</span>
+                  <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  <span className="font-medium text-sm sm:text-base">मंदी</span>
                 </div>
-                <p className="text-sm text-red-600">गेहूं और दालों की मांग में कमी</p>
+                <p className="text-xs sm:text-sm text-red-600">गेहूं और दालों की मांग में कमी</p>
               </div>
 
-              <div className="p-3 bg-blue-50 rounded-lg">
+              <div className="p-2.5 sm:p-3 bg-blue-50 rounded-lg">
                 <div className="flex items-center text-blue-700 mb-1">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  <span className="font-medium">मौसमी सुझाव</span>
+                  <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
+                  <span className="font-medium text-sm sm:text-base">मौसमी सुझाव</span>
                 </div>
-                <p className="text-sm text-blue-600">रबी की तैयारी का समय, बुवाई की योजना बनाएं</p>
+                <p className="text-xs sm:text-sm text-blue-600">रबी की तैयारी का समय, बुवाई की योजना बनाएं</p>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader>
-              <CardTitle>मंडी की जानकारी</CardTitle>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base sm:text-lg">मंडी की जानकारी</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-2.5 sm:space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">स्थान</span>
-                  <span className="font-medium">इटारसी मंडी</span>
+                  <span className="text-xs sm:text-sm">स्थान</span>
+                  <span className="font-medium text-sm sm:text-base">इटारसी मंडी</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">दूरी</span>
-                  <span className="font-medium">15 किमी</span>
+                  <span className="text-xs sm:text-sm">दूरी</span>
+                  <span className="font-medium text-sm sm:text-base">15 किमी</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm">समय</span>
-                  <span className="font-medium">सुबह 6-12 बजे</span>
+                  <span className="text-xs sm:text-sm">समय</span>
+                  <span className="font-medium text-sm sm:text-base">सुबह 6-12 बजे</span>
                 </div>
-                <Button variant="outline" className="w-full mt-4">
-                  <MapPin className="w-4 h-4 mr-2" />
+                <Button variant="outline" className="w-full mt-3 sm:mt-4 text-xs sm:text-sm h-8 sm:h-9">
+                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2" />
                   दिशा देखें
                 </Button>
               </div>
@@ -611,13 +613,13 @@ function CropDetailModal({ crop, isOpen, onClose }: {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
-        className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto"
+        className="bg-white rounded-lg max-w-4xl w-[95%] max-h-[90vh] overflow-auto m-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden">
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 space-y-4 sm:space-y-0">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden">
                 <ImageWithFallback
                   src={crop.image}
                   alt={crop.nameHindi}
@@ -625,25 +627,25 @@ function CropDetailModal({ crop, isOpen, onClose }: {
                 />
               </div>
               <div>
-                <h2 className="text-2xl font-bold">{crop.nameHindi}</h2>
-                <p className="text-gray-600">{crop.name} • {crop.category}</p>
+                <h2 className="text-xl sm:text-2xl font-bold">{crop.nameHindi}</h2>
+                <p className="text-sm sm:text-base text-gray-600">{crop.name} • {crop.category}</p>
               </div>
             </div>
-            <Button variant="outline" onClick={onClose}>बंद करें</Button>
+            <Button variant="outline" onClick={onClose} className="text-xs sm:text-sm h-8 sm:h-9">बंद करें</Button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             <div className="lg:col-span-2">
               <Card>
-                <CardHeader>
-                  <CardTitle>मूल्य ट्रेंड</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base sm:text-lg">मूल्य ट्रेंड</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg flex items-center justify-center">
+                  <div className="h-48 sm:h-64 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg flex items-center justify-center">
                     <div className="text-center">
-                      <BarChart3 className="w-16 h-16 mx-auto text-primary mb-4" />
-                      <p className="text-lg font-medium">Interactive Chart</p>
-                      <p className="text-gray-600">7-day, 1-month, 6-month trends</p>
+                      <BarChart3 className="w-12 h-12 sm:w-16 sm:h-16 mx-auto text-primary mb-3 sm:mb-4" />
+                      <p className="text-base sm:text-lg font-medium">Interactive Chart</p>
+                      <p className="text-xs sm:text-sm text-gray-600">7-day, 1-month, 6-month trends</p>
                     </div>
                   </div>
                 </CardContent>
@@ -652,45 +654,45 @@ function CropDetailModal({ crop, isOpen, onClose }: {
 
             <div className="space-y-4">
               <Card>
-                <CardHeader>
-                  <CardTitle>वर्तमान कीमत</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base sm:text-lg">वर्तमान कीमत</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="text-center">
-                    <p className="text-3xl font-bold text-primary">
+                    <p className="text-2xl sm:text-3xl font-bold text-primary">
                       ₹{crop.currentPrice.toLocaleString()}
                     </p>
-                    <p className="text-gray-600">प्रति {crop.unit}</p>
+                    <p className="text-xs sm:text-sm text-gray-600">प्रति {crop.unit}</p>
                     <div className={`flex items-center justify-center mt-2 ${
                       crop.changePercent > 0 ? 'text-green-600' : 'text-red-600'
                     }`}>
                       {crop.changePercent > 0 ? (
-                        <TrendingUp className="w-4 h-4 mr-1" />
+                        <TrendingUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
                       ) : (
-                        <TrendingDown className="w-4 h-4 mr-1" />
+                        <TrendingDown className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1" />
                       )}
-                      <span>{crop.changePercent > 0 ? '+' : ''}₹{Math.abs(crop.change)} ({crop.changePercent}%)</span>
+                      <span className="text-xs sm:text-sm">{crop.changePercent > 0 ? '+' : ''}₹{Math.abs(crop.change)} ({crop.changePercent}%)</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <Card>
-                <CardHeader>
-                  <CardTitle>बाजार की जानकारी</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base sm:text-lg">बाजार की जानकारी</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-2 sm:space-y-3">
                   <div className="flex justify-between">
-                    <span>मंडी</span>
-                    <span className="font-medium">{crop.market}</span>
+                    <span className="text-xs sm:text-sm">मंडी</span>
+                    <span className="font-medium text-xs sm:text-sm">{crop.market}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>अंतिम अपडेट</span>
-                    <span className="font-medium">{crop.lastUpdated}</span>
+                    <span className="text-xs sm:text-sm">अंतिम अपडेट</span>
+                    <span className="font-medium text-xs sm:text-sm">{crop.lastUpdated}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>श्रेणी</span>
-                    <span className="font-medium">{crop.category}</span>
+                    <span className="text-xs sm:text-sm">श्रेणी</span>
+                    <span className="font-medium text-xs sm:text-sm">{crop.category}</span>
                   </div>
                 </CardContent>
               </Card>
