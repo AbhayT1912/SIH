@@ -38,7 +38,8 @@ import {
   Leaf,
   MessageCircle,
   Package,
-  Target
+  Target,
+  LogIn
 } from "lucide-react";
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
@@ -65,26 +66,16 @@ export default function App() {
   }
 
   return (
-    <>
-        <SignedOut>
-          <SignInButton />
-        </SignedOut>
-        <SignedIn>
-          <UserButton />
-        </SignedIn>
-  
-
-      <LanguageProvider>
-        <AppContent
-          currentPage={currentPage}
-          activeVariation={activeVariation}
-          setActiveVariation={setActiveVariation}
-          isChatOpen={isChatOpen}
-          setIsChatOpen={setIsChatOpen}
-          handleNavigation={handleNavigation}
-        />
-      </LanguageProvider>
-    </>
+    <LanguageProvider>
+      <AppContent
+        currentPage={currentPage}
+        activeVariation={activeVariation}
+        setActiveVariation={setActiveVariation}
+        isChatOpen={isChatOpen}
+        setIsChatOpen={setIsChatOpen}
+        handleNavigation={handleNavigation}
+      />
+    </LanguageProvider>
   );
 }
 
@@ -326,22 +317,20 @@ function TopNavigationWithRouter({ currentPage, onNavigate }: {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* User Profile */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Avatar className="w-8 h-8 cursor-pointer">
-                <AvatarFallback className="bg-primary text-white">R</AvatarFallback>
-              </Avatar>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>
-                <User className="w-4 h-4 mr-2" />
-                {t('profile')}
-              </DropdownMenuItem>
-              <DropdownMenuItem>{t('settings')}</DropdownMenuItem>
-              <DropdownMenuItem>{t('logout')}</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* Clerk Authentication */}
+          <div className="flex items-center space-x-2">
+            <SignedIn>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
+            <SignedOut>
+              <SignInButton>
+                <Button variant="default" size="sm">
+                  <LogIn className="w-4 h-4 mr-2" />
+                  {t('sign-in')}
+                </Button>
+              </SignInButton>
+            </SignedOut>
+          </div>
         </div>
 
         {/* AI Chat Assistant - add it here too */}
