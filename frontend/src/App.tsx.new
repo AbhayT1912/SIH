@@ -1,22 +1,18 @@
 import { useState } from "react";
 import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
-import { TopNavigation, WeatherHeader } from "./components/navigation";
+import { ErrorBoundary } from './components/error-boundary';
+import { WeatherHeader } from "./components/navigation";
 import { OnboardingFlow } from "./components/onboarding";
 import { CalendarPage } from "./components/calendar-page";
 import { MarketPage } from "./components/market-page";
 import { PlantAnalysisPage } from "./components/plant-analysis";
-import { BotpressChat } from "./components/botpress-chat";
 import { MyFarmPage } from "./components/my-farm-page";
 import { BalancedDashboard } from "./components/balanced-dashboard";
-import { YieldPredictionPage } from "./components/yield-prediction-page";
-import { EnhancedYieldPredictionPage } from "./components/enhanced-yield-prediction-page";
 import { PreciseYieldPrediction } from "./components/precise-yield-prediction";
 import { CropRecommendationsPage } from "./components/crop-recommendations-page";
 import { InventoryPage } from "./components/inventory-page";
-
 import { LanguageProvider, useLanguage } from "./components/language-context";
 import { 
-  DashboardVariation1, 
   DashboardVariation2, 
   DashboardVariation3 
 } from "./components/dashboard-variants";
@@ -28,29 +24,39 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "./components/ui/avatar";
 import { 
   LayoutDashboard, 
   MapPin, 
   Calendar, 
   TrendingUp, 
-  User,
   Languages,
   Leaf,
-  MessageCircle,
   Package,
   Target,
   LogIn
 } from "lucide-react";
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Page } from './types/navigation';
 
-type Page = 'onboarding' | 'dashboard' | 'calendar' | 'market' | 'plant-analysis' | 'my-farm' | 'yield-prediction' | 'crop-recommendations' | 'inventory';
+// Ensure Clerk publishable key is available
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!CLERK_PUBLISHABLE_KEY) {
+  throw new Error("Missing Clerk Publishable Key in environment variables");
+}
+
 type Language = 'hi' | 'en' | 'mr';
+
+interface AppContentProps {
+  currentPage: Page;
+  activeVariation: number;
+  setActiveVariation: (variation: number) => void;
+  handleNavigation: (page: Page) => void;
+}
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('onboarding');
   const [activeVariation, setActiveVariation] = useState(1);
+
   const handleOnboardingComplete = () => {
     setCurrentPage('dashboard');
   };
@@ -61,18 +67,28 @@ export default function App() {
 
   // Show onboarding first
   if (currentPage === 'onboarding') {
-    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
+    return (
+      <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+        <ErrorBoundary>
+          <OnboardingFlow onComplete={handleOnboardingComplete} />
+        </ErrorBoundary>
+      </ClerkProvider>
+    );
   }
 
   return (
-    <LanguageProvider>
-      <AppContent
-        currentPage={currentPage}
-        activeVariation={activeVariation}
-        setActiveVariation={setActiveVariation}
-        handleNavigation={handleNavigation}
-      />
-    </LanguageProvider>
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+      <ErrorBoundary>
+        <LanguageProvider>
+          <AppContent
+            currentPage={currentPage}
+            activeVariation={activeVariation}
+            setActiveVariation={setActiveVariation}
+            handleNavigation={handleNavigation}
+          />
+        </LanguageProvider>
+      </ErrorBoundary>
+    </ClerkProvider>
   );
 }
 
@@ -81,13 +97,9 @@ function AppContent({
   activeVariation, 
   setActiveVariation, 
   handleNavigation 
-}: {
-  currentPage: Page;
-  activeVariation: number;
-  setActiveVariation: (variation: number) => void;
-  handleNavigation: (page: Page) => void;
-}) {
+}: AppContentProps) {
   const { t } = useLanguage();
+
   const variations = [
     { id: 1, name: "Balanced Grid", component: BalancedDashboard },
     { id: 2, name: "Feed Style", component: DashboardVariation2 },
@@ -106,14 +118,12 @@ function AppContent({
         return <PlantAnalysisPage />;
       case 'my-farm':
         return <MyFarmPage />;
-
       case 'yield-prediction':
         return <PreciseYieldPrediction onBack={() => handleNavigation('dashboard')} />;
       case 'crop-recommendations':
         return <CropRecommendationsPage />;
       case 'inventory':
         return <InventoryPage />;
-
       case 'dashboard':
       default:
         return (
@@ -182,13 +192,11 @@ function AppContent({
   );
 }
 
-// Enhanced Navigation with routing
 function TopNavigationWithRouter({ currentPage, onNavigate }: { 
-  currentPage: Page, 
-  onNavigate: (page: Page) => void 
+  currentPage: Page;
+  onNavigate: (page: Page) => void;
 }) {
   const { language, setLanguage, t } = useLanguage();
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const getLanguageDisplay = (lang: Language) => {
     switch (lang) {
@@ -269,8 +277,6 @@ function TopNavigationWithRouter({ currentPage, onNavigate }: {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          
-
         </div>
 
         {/* Right Side Actions */}
@@ -311,21 +317,7 @@ function TopNavigationWithRouter({ currentPage, onNavigate }: {
             </SignedOut>
           </div>
         </div>
-
-        {/* AI Chat Assistant - add it here too */}
-        <BotpressChat />
       </div>
     </nav>
   );
 }
-
-// Main App component with routing
-const MainApp: React.FC = () => {
-  return (
-    <div className="app">
-      <Routes>
-        <Route path="/" element={<div>Welcome to FasalSaathi</div>} />
-      </Routes>
-    </div>
-  );
-};

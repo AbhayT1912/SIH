@@ -21,7 +21,13 @@ import {
 } from "lucide-react";
 
 // Variation 1: Standard Balanced Grid Layout
-export function DashboardVariation1() {
+interface DashboardProps {
+  onNavigate: (page: Page) => void;
+}
+
+type Page = 'dashboard' | 'calendar' | 'market' | 'plant-analysis' | 'my-farm' | 'yield-prediction' | 'crop-recommendations' | 'inventory';
+
+export function DashboardVariation1({ onNavigate }: DashboardProps) {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Welcome Section */}
@@ -87,7 +93,7 @@ export function DashboardVariation1() {
 }
 
 // Variation 2: Single-Column Feed Style Layout
-export function DashboardVariation2() {
+export function DashboardVariation2({ onNavigate }: DashboardProps) {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <div className="space-y-6">
@@ -148,7 +154,7 @@ export function DashboardVariation2() {
 }
 
 // Variation 3: Data-Centric Layout with Charts
-export function DashboardVariation3() {
+export function DashboardVariation3({ onNavigate }: DashboardProps) {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Key Metrics Row */}
