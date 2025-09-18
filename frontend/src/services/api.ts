@@ -84,7 +84,7 @@ apiClient.interceptors.response.use(
 // Auth API
 export const authApi = {
     register: (userData: Omit<User, 'id'>) => 
-        apiClient.post<User>('/auth/register', userData),
+        apiClient.post<User>('/register', userData),
     
     login: (email: string, password: string) =>
         apiClient.post<{ access_token: string, token_type: string }>('/auth/token', 

@@ -15,7 +15,8 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # Database Settings
-    DATABASE_URL: str = "sqlite:///./data/fasalsaathi.db"
+    MONGO_DATABASE_URI: str = "mongodb://localhost:27017"
+    DB_NAME: str = "fasalsaathi"
     
     # CORS Settings
     CORS_ORIGINS: List[str] = ["*"]  # Allow all origins

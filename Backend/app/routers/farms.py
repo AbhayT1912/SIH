@@ -1,60 +1,41 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List, Annotated
 
-from app.database import get_db
-from app.dependencies import get_current_active_user
-from app.models.models import User, Farm
-from app.schemas.schemas import (
-    FarmCreate,
-    Farm as FarmSchema,
-    FarmWithCrops,
-    FarmWithSoilTests
-)
+from ..dependencies import get_db, get_current_active_user
+from ..schemas import FarmCreate, Farm as FarmSchema, User as UserSchema
+from .. import crud
 
-router = APIRouter(prefix="/farms", tags=["farms"])
+router = APIRouter(tags=["Farms"])
 
 @router.post("/", response_model=FarmSchema)
 async def create_farm(
     farm: FarmCreate,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db)
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
+    db = Depends(get_db)
 ):
     """Create a new farm for current user."""
-    db_farm = Farm(
-        **farm.model_dump(),
-        owner_id=current_user.id
-    )
-    db.add(db_farm)
-    db.commit()
-    db.refresh(db_farm)
-    return db_farm
+    new_farm = await crud.create_farm(db, farm=farm, owner_id=str(current_user.id))
+    return new_farm
 
 @router.get("/", response_model=List[FarmSchema])
 async def read_farms(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
     skip: int = 0,
     limit: int = 100,
-    db: Session = Depends(get_db)
+    db = Depends(get_db)
 ):
     """Get list of farms for current user."""
-    farms = db.query(Farm)\
-        .filter(Farm.owner_id == current_user.id)\
-        .offset(skip)\
-        .limit(limit)\
-        .all()
+    farms = await crud.get_farms_by_owner(db, owner_id=str(current_user.id), skip=skip, limit=limit)
     return farms
 
-@router.get("/{farm_id}", response_model=FarmWithCrops)
+@router.get("/{farm_id}", response_model=FarmSchema)
 async def read_farm(
-    farm_id: int,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db)
+    farm_id: str,
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
+    db = Depends(get_db)
 ):
-    """Get specific farm details with crops."""
-    farm = db.query(Farm)\
-        .filter(Farm.id == farm_id, Farm.owner_id == current_user.id)\
-        .first()
+    """Get specific farm details."""
+    farm = await crud.get_farm(db, farm_id=farm_id, owner_id=str(current_user.id))
     if farm is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -64,61 +45,31 @@ async def read_farm(
 
 @router.put("/{farm_id}", response_model=FarmSchema)
 async def update_farm(
-    farm_id: int,
+    farm_id: str,
     farm_update: FarmCreate,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db)
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
+    db = Depends(get_db)
 ):
     """Update farm details."""
-    db_farm = db.query(Farm)\
-        .filter(Farm.id == farm_id, Farm.owner_id == current_user.id)\
-        .first()
-    if db_farm is None:
+    updated_farm = await crud.update_farm(db, farm_id=farm_id, farm_update=farm_update, owner_id=str(current_user.id))
+    if updated_farm is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Farm not found"
         )
-    
-    for key, value in farm_update.model_dump().items():
-        setattr(db_farm, key, value)
-    
-    db.commit()
-    db.refresh(db_farm)
-    return db_farm
+    return updated_farm
 
 @router.delete("/{farm_id}")
 async def delete_farm(
-    farm_id: int,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db)
+    farm_id: str,
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
+    db = Depends(get_db)
 ):
     """Delete a farm."""
-    db_farm = db.query(Farm)\
-        .filter(Farm.id == farm_id, Farm.owner_id == current_user.id)\
-        .first()
-    if db_farm is None:
+    deleted = await crud.delete_farm(db, farm_id=farm_id, owner_id=str(current_user.id))
+    if not deleted:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Farm not found"
         )
-    
-    db.delete(db_farm)
-    db.commit()
     return {"message": "Farm deleted successfully"}
-
-@router.get("/{farm_id}/soil-tests", response_model=FarmWithSoilTests)
-async def read_farm_soil_tests(
-    farm_id: int,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db)
-):
-    """Get farm's soil test history."""
-    farm = db.query(Farm)\
-        .filter(Farm.id == farm_id, Farm.owner_id == current_user.id)\
-        .first()
-    if farm is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Farm not found"
-        )
-    return farm

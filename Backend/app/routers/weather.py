@@ -1,19 +1,17 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 from typing import List, Annotated, Dict, Any
 from datetime import datetime, timedelta
 
-from app.database import get_db
-from app.dependencies import get_current_active_user
-from app.models.models import User, WeatherData
-from app.schemas.schemas import WeatherDataCreate, WeatherData as WeatherDataSchema
-from app.services.weather_service import weather_service
+from ..dependencies import get_db, get_current_active_user
+from ..schemas import WeatherDataCreate, WeatherData as WeatherDataSchema, User as UserSchema
+from ..services.weather_service import weather_service
+from .. import crud
 
-router = APIRouter(prefix="/weather", tags=["weather"])
+router = APIRouter(tags=["Weather"])
 
 @router.get("/current", response_model=Dict[str, Any])
 async def get_current_weather(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
     lat: float = 22.62,
     lon: float = 77.76
 ):
@@ -29,7 +27,7 @@ async def get_current_weather(
 
 @router.get("/forecast", response_model=Dict[str, Any])
 async def get_weather_forecast(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
     lat: float = 22.62,
     lon: float = 77.76,
     days: int = 7
@@ -47,33 +45,21 @@ async def get_weather_forecast(
 @router.get("/history/{location}", response_model=List[WeatherDataSchema])
 async def get_weather_history(
     location: str,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db),
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
+    db = Depends(get_db),
     days: int = 30
 ):
     """Get historical weather data for a location."""
-    history = db.query(WeatherData)\
-        .filter(
-            WeatherData.location == location,
-            WeatherData.date >= datetime.utcnow() - timedelta(days=days),
-            WeatherData.date <= datetime.utcnow()
-        )\
-        .order_by(WeatherData.date.desc())\
-        .all()
-    
+    history = await crud.get_weather_history(db, location=location, days=days)
     return history
 
 # Admin endpoints for managing weather data
 @router.post("/", response_model=WeatherDataSchema)
 async def create_weather_data(
     weather: WeatherDataCreate,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db)
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
+    db = Depends(get_db)
 ):
     """Create new weather data entry (admin only)."""
     # TODO: Add admin check
-    db_weather = WeatherData(**weather.model_dump())
-    db.add(db_weather)
-    db.commit()
-    db.refresh(db_weather)
-    return db_weather
+    return await crud.create_weather_data(db, weather=weather)

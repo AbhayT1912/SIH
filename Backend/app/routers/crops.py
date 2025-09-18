@@ -1,43 +1,38 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
-from sqlalchemy.orm import Session
 from typing import List, Annotated
 import numpy as np
 from PIL import Image
 import io
 
-from app.database import get_db
-from app.dependencies import get_current_active_user
-from app.models.models import User, Crop, Disease
-from app.schemas.schemas import (
+from ..dependencies import get_db, get_current_active_user
+from ..schemas import (
     CropCreate,
     Crop as CropSchema,
-    CropWithDiseases,
     DiseaseCreate,
-    Disease as DiseaseSchema
+    Disease as DiseaseSchema,
+    User as UserSchema
 )
+from .. import crud
 
-router = APIRouter(prefix="/crops", tags=["crops"])
+router = APIRouter(tags=["Crops"])
 
 @router.get("/", response_model=List[CropSchema])
 async def list_crops(
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db),
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
+    db = Depends(get_db),
     season: str = None
 ):
     """Get list of all crops, optionally filtered by season."""
-    query = db.query(Crop)
-    if season:
-        query = query.filter(Crop.season == season)
-    return query.all()
+    return await crud.list_crops(db, season=season)
 
-@router.get("/{crop_id}", response_model=CropWithDiseases)
+@router.get("/{crop_id}", response_model=CropSchema)
 async def get_crop(
-    crop_id: int,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db)
+    crop_id: str,
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
+    db = Depends(get_db)
 ):
     """Get detailed information about a specific crop."""
-    crop = db.query(Crop).filter(Crop.id == crop_id).first()
+    crop = await crud.get_crop(db, crop_id=crop_id)
     if crop is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -47,22 +42,17 @@ async def get_crop(
 
 @router.get("/{crop_id}/diseases", response_model=List[DiseaseSchema])
 async def get_crop_diseases(
-    crop_id: int,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db)
+    crop_id: str,
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
+    db = Depends(get_db)
 ):
     """Get list of diseases associated with a crop."""
-    crop = db.query(Crop).filter(Crop.id == crop_id).first()
-    if crop is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Crop not found"
-        )
-    return crop.diseases
+    diseases = await crud.get_crop_diseases(db, crop_id=crop_id)
+    return diseases
 
 @router.post("/disease-detection", response_model=dict)
 async def detect_disease(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
     image: UploadFile = File(...)
 ):
     """Detect plant diseases from uploaded image."""
@@ -102,7 +92,7 @@ async def detect_disease(
 
 @router.post("/recommendation", response_model=dict)
 async def get_crop_recommendation(
-    current_user: Annotated[User, Depends(get_current_active_user)],
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
     soil_data: dict
 ):
     """Get crop recommendations based on soil and weather data."""
@@ -133,27 +123,19 @@ async def get_crop_recommendation(
 @router.post("/", response_model=CropSchema)
 async def create_crop(
     crop: CropCreate,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db)
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
+    db = Depends(get_db)
 ):
     """Create new crop (admin only)."""
     # TODO: Add admin check
-    db_crop = Crop(**crop.model_dump())
-    db.add(db_crop)
-    db.commit()
-    db.refresh(db_crop)
-    return db_crop
+    return await crud.create_crop(db, crop=crop)
 
 @router.post("/diseases", response_model=DiseaseSchema)
 async def create_disease(
     disease: DiseaseCreate,
-    current_user: Annotated[User, Depends(get_current_active_user)],
-    db: Session = Depends(get_db)
+    current_user: Annotated[UserSchema, Depends(get_current_active_user)],
+    db = Depends(get_db)
 ):
     """Create new disease entry (admin only)."""
     # TODO: Add admin check
-    db_disease = Disease(**disease.model_dump())
-    db.add(db_disease)
-    db.commit()
-    db.refresh(db_disease)
-    return db_disease
+    return await crud.create_disease(db, disease=disease)

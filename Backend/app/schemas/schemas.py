@@ -1,6 +1,23 @@
 from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel, EmailStr, Field
+from bson import ObjectId
+
+class PyObjectId(ObjectId):
+    @classmethod
+    def __get_validators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v, values):
+        if not ObjectId.is_valid(v):
+            raise ValueError("Invalid objectid")
+        return ObjectId(v)
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, field_schema):
+        field_schema.update(type="string")
+
 
 # Base Schemas
 class UserBase(BaseModel):
@@ -63,76 +80,97 @@ class CropCreate(CropBase):
     pass
 
 class DiseaseCreate(DiseaseBase):
-    crop_id: int
+    crop_id: str
 
 class SoilTestCreate(SoilTestBase):
-    farm_id: int
+    farm_id: str
 
 class WeatherDataCreate(WeatherDataBase):
     pass
 
 class MarketPriceCreate(MarketPriceBase):
-    crop_id: int
+    crop_id: str
 
 # Response Schemas
 class User(UserBase):
-    id: int
+    id: PyObjectId = Field(alias="_id")
     is_active: bool
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},
+    }
 
 class Farm(FarmBase):
-    id: int
-    owner_id: int
+    id: PyObjectId = Field(alias="_id")
+    owner_id: str
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},
+    }
 
 class Crop(CropBase):
-    id: int
+    id: PyObjectId = Field(alias="_id")
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},
+    }
 
 class Disease(DiseaseBase):
-    id: int
-    crop_id: int
+    id: PyObjectId = Field(alias="_id")
+    crop_id: str
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},
+    }
 
 class SoilTest(SoilTestBase):
-    id: int
-    farm_id: int
+    id: PyObjectId = Field(alias="_id")
+    farm_id: str
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},
+    }
 
 class WeatherData(WeatherDataBase):
-    id: int
+    id: PyObjectId = Field(alias="_id")
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},
+    }
 
 class MarketPrice(MarketPriceBase):
-    id: int
-    crop_id: int
+    id: PyObjectId = Field(alias="_id")
+    crop_id: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = {
+        "populate_by_name": True,
+        "arbitrary_types_allowed": True,
+        "json_encoders": {ObjectId: str},
+    }
 
 # Token Schemas
 class Token(BaseModel):
@@ -140,7 +178,7 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    user_id: Optional[int] = None
+    user_id: Optional[str] = None
 
 # Extended Response Schemas with Relationships
 class FarmWithCrops(Farm):
