@@ -1,4 +1,5 @@
 import logging
+import asyncio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -20,10 +21,11 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"], # Change this for production
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 API_PREFIX_V1 = "/api/v1"
@@ -53,6 +55,19 @@ async def health_check():
 
 @app.on_event("startup")
 async def startup_event():
+    try:
+        from .database import verify_database_connection
+        # Try to connect with a timeout
+        try:
+            await asyncio.wait_for(verify_database_connection(), timeout=10.0)
+            logger.info("Database connection verified successfully")
+        except asyncio.TimeoutError:
+            logger.error("Database connection timed out")
+            raise ConnectionError("Could not connect to MongoDB Atlas - connection timed out")
+    except Exception as e:
+        logger.error(f"Database connection failed: {e}")
+        # Don't raise the error, allow the application to start without DB connection
+        # This will let us handle DB errors gracefully in the routes
     logger.info("Application startup complete.")
 
 @app.on_event("shutdown")

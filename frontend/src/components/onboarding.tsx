@@ -48,7 +48,7 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
         email: userInfo.email,
         password: userInfo.password,
         phone: userInfo.phone,
-        language_preference: selectedLanguage,
+        language_preference: selectedLanguage || "en",
     };
 
     try {

@@ -2,6 +2,11 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from bson import ObjectId
 from passlib.context import CryptContext
 from . import schemas
+from datetime import datetime, timedelta
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -10,16 +15,35 @@ async def get_user_by_email(db: AsyncIOMotorDatabase, email: str):
     return await db.users.find_one({"email": email})
 
 async def create_user(db: AsyncIOMotorDatabase, user: schemas.UserCreate):
-    hashed_password = pwd_context.hash(user.password)
-    user_dict = user.model_dump()
-    user_dict["hashed_password"] = hashed_password
-    user_dict["is_active"] = True
-    user_dict["created_at"] = datetime.utcnow()
-    user_dict["updated_at"] = datetime.utcnow()
-    del user_dict["password"]
-    result = await db.users.insert_one(user_dict)
-    new_user = await db.users.find_one({"_id": result.inserted_id})
-    return new_user
+    try:
+        # Check if user already exists
+        if await db.users.find_one({"email": user.email}):
+            raise ValueError("Email already registered")
+
+        # Hash the password
+        hashed_password = pwd_context.hash(user.password)
+        
+        # Prepare user document
+        user_dict = user.model_dump(exclude_unset=True)
+        user_dict["hashed_password"] = hashed_password
+        user_dict["is_active"] = True
+        user_dict["created_at"] = datetime.utcnow()
+        user_dict["updated_at"] = datetime.utcnow()
+        del user_dict["password"]  # Remove plain password
+        
+        # Insert into database
+        result = await db.users.insert_one(user_dict)
+        
+        # Fetch and return the new user
+        new_user = await db.users.find_one({"_id": result.inserted_id})
+        if new_user:
+            new_user["id"] = str(new_user["_id"])  # Convert ObjectId to string
+            return new_user
+        else:
+            raise ValueError("Failed to create user")
+    except Exception as e:
+        logger.error(f"Error creating user: {str(e)}")
+        raise
 
 async def get_user(db: AsyncIOMotorDatabase, user_id: str):
     return await db.users.find_one({"_id": ObjectId(user_id)})

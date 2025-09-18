@@ -1,8 +1,7 @@
-from pydantic_settings import BaseSettings
+from pydantic import BaseModel
 from typing import List
-import json
 
-class Settings(BaseSettings):
+class Settings(BaseModel):
     # Application Settings
     APP_NAME: str = "FasalSaathi API"
     VERSION: str = "1.0.0"
@@ -15,27 +14,18 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # Database Settings
-    MONGO_DATABASE_URI: str = "mongodb://localhost:27017"
-    DB_NAME: str = "fasalsaathi"
+    MONGO_DATABASE_URI: str = "mongodb+srv://Ayushman:asdfghjkl@cluster0.yjl1djf.mongodb.net/cluster0?retryWrites=true&w=majority"
+    DB_NAME: str = "cluster0"
     
     # CORS Settings
-    CORS_ORIGINS: List[str] = ["*"]  # Allow all origins
+    CORS_ORIGINS: List[str] = ["*"]
     HOST: str = "127.0.0.1"
-    PORT: int = 8088
+    PORT: int = 8000
     
     # ML Model Settings
     MODEL_PATH: str = "app/ml_models"
     
     # External APIs
     WEATHER_API_KEY: str = "8f945372fa522a39510cade87c27e8bf"
-    SOIL_API_KEY: str = ""
-    
-    model_config = {
-        "env_file": ".env",
-        "case_sensitive": True,
-        "env_file_encoding": "utf-8",
-        "extra": "allow"
-    }
 
-# Create global settings object
 settings = Settings()

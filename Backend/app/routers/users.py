@@ -23,20 +23,42 @@ async def register_user(user: UserCreate, db = Depends(get_db)):
     """
     Register a new user in the database.
     """
-    logger.info(f"Registration attempt for email: {user.email}")
+    try:
+        logger.info(f"Registration attempt for email: {user.email}")
 
-    db_user = await crud.get_user_by_email(db, email=user.email)
-    
-    if db_user:
-        logger.warning(f"Registration failed: Email already registered for {user.email}")
+        # Check if email exists
+        db_user = await crud.get_user_by_email(db, email=user.email)
+        if db_user:
+            logger.warning(f"Registration failed: Email already registered for {user.email}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered."
+            )
+
+        # Create new user
+        try:
+            new_user = await crud.create_user(db, user=user)
+            if not new_user:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to create user record"
+                )
+            logger.info(f"User {user.email} successfully registered with ID {new_user['_id']}")
+            return new_user
+        except Exception as e:
+            logger.error(f"Error creating user: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Database error: {str(e)}"
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error during registration: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered."
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="An unexpected error occurred during registration"
         )
-
-    new_user = await crud.create_user(db, user=user)
-    logger.info(f"User {user.email} successfully registered with ID {new_user['_id']}")
-    return new_user
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(
