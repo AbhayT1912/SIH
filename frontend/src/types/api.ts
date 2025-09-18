@@ -1,12 +1,19 @@
+export interface Token {
+    access_token: string;
+    token_type: string;
+}
+
 export interface User {
-    id: number;
+    id?: string;  // MongoDB ObjectId as string
     email: string;
     phone: string;
     full_name: string;
     language_preference: string;
-    is_active: boolean;
-    created_at: string;
-    updated_at: string;
+    password?: string; // Only for registration
+    is_active?: boolean;
+    created_at?: string;
+    updated_at?: string;
+    token?: Token; // Included in registration response
 }
 
 export interface Farm {

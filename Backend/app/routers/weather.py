@@ -3,7 +3,7 @@ from typing import List, Annotated, Dict, Any
 from datetime import datetime, timedelta
 
 from ..dependencies import get_db, get_current_active_user
-from ..schemas import WeatherDataCreate, WeatherData as WeatherDataSchema, User as UserSchema
+from ..schemas.schemas import WeatherDataCreate, WeatherDataBase as WeatherDataSchema, UserBase as UserSchema
 from ..services.weather_service import weather_service
 from .. import crud
 

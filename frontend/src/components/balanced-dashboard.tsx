@@ -19,8 +19,9 @@ import {
   Eye,
   CheckCircle
 } from "lucide-react";
+import type { Page } from "../types/navigation";
 
-export function BalancedDashboard({ onNavigate }: { onNavigate?: (page: string) => void }) {
+export function BalancedDashboard({ onNavigate }: { onNavigate?: (page: Page) => void }) {
   const { t } = useLanguage();
   
   return (

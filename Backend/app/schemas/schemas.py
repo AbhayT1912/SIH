@@ -1,22 +1,44 @@
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, GetJsonSchemaHandler
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import CoreSchema, core_schema
 from bson import ObjectId
 
-class PyObjectId(ObjectId):
+class PyObjectId(str):
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(
+        cls,
+        _source_type: Any,
+        _handler: Any,
+    ) -> CoreSchema:
+        return core_schema.json_or_python_schema(
+            json_schema=core_schema.str_schema(),
+            python_schema=core_schema.union_schema([
+                core_schema.is_instance_schema(ObjectId),
+                core_schema.chain_schema([
+                    core_schema.str_schema(),
+                    core_schema.no_info_plain_validator_function(cls.validate),
+                ]),
+            ]),
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                lambda x: str(x),
+                return_schema=core_schema.str_schema(),
+            ),
+        )
 
     @classmethod
-    def validate(cls, v, values):
-        if not ObjectId.is_valid(v):
-            raise ValueError("Invalid objectid")
-        return ObjectId(v)
-
-    @classmethod
-    def __get_pydantic_json_schema__(cls, field_schema):
-        field_schema.update(type="string")
+    def validate(cls, value):
+        if isinstance(value, ObjectId):
+            return value
+        
+        if isinstance(value, str):
+            try:
+                return ObjectId(value)
+            except Exception:
+                raise ValueError("Invalid ObjectId format")
+                
+        raise ValueError("Invalid ObjectId")
 
 
 # Base Schemas
@@ -25,6 +47,20 @@ class UserBase(BaseModel):
     phone: str
     full_name: str
     language_preference: str = "en"
+    is_active: bool = True
+    
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "email": "user@example.com",
+                "phone": "+919876543210",
+                "full_name": "John Doe",
+                "language_preference": "en",
+                "is_active": True
+            }
+        },
+        "from_attributes": True
+    }
 
 class FarmBase(BaseModel):
     name: str
@@ -69,9 +105,23 @@ class MarketPriceBase(BaseModel):
     price: float
     date: datetime
 
-# Create Schemas
+# Auth Schemas
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
 class UserCreate(UserBase):
     password: str
+
+class UserResponse(UserBase):
+    id: Optional[PyObjectId] = Field(default=None, alias="_id")
+    token: Optional[Token] = None
+
+    model_config = {
+        "populate_by_name": True,
+        "json_encoders": {ObjectId: str},
+        "arbitrary_types_allowed": True
+    }
 
 class FarmCreate(FarmBase):
     pass

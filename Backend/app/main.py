@@ -4,7 +4,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+# Import routers
 from .routers import users, farms, crops, market, weather
+from .database import verify_database_connection
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,14 +21,36 @@ app = FastAPI(
     openapi_url="/api/openapi.json"
 )
 
+# Add CORS middleware with more specific configuration
+origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",  # Vite's default port
+    "http://127.0.0.1:5173",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "*"  # Remove this in production
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
     expose_headers=["*"]
 )
+
+# Add request logging middleware
+@app.middleware("http")
+async def log_requests(request, call_next):
+    logger.info(f"Request: {request.method} {request.url}")
+    try:
+        response = await call_next(request)
+        logger.info(f"Response: {response.status_code}")
+        return response
+    except Exception as e:
+        logger.error(f"Request failed: {str(e)}")
+        raise
 
 API_PREFIX_V1 = "/api/v1"
 

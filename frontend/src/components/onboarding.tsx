@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { motion } from "framer-motion";
 import { Languages, Leaf, ArrowRight, User, MapPin, Smartphone, Mail, Lock } from "lucide-react";
 import { authApi } from "../services/api";
+import { AccountScreen } from "./account-screen";
 
 interface OnboardingProps {
   onComplete: () => void;
@@ -26,11 +27,16 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loginInfo, setLoginInfo] = useState({
+    email: "",
+    password: ""
+  });
+  const [isLoginMode, setIsLoginMode] = useState(false); // Toggle between login and register
 
   const steps = [
     { id: 0, title: "Welcome", component: SplashScreen },
     { id: 1, title: "Language", component: LanguageSelection },
-    { id: 2, title: "Profile", component: Registration }
+    { id: 2, title: "Account", component: AccountScreen }
   ];
 
   const handleRegistrationSubmit = async () => {
@@ -48,16 +54,95 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
         email: userInfo.email,
         password: userInfo.password,
         phone: userInfo.phone,
-        language_preference: selectedLanguage || "en",
+        language_preference: selectedLanguage || "en"
     };
 
     try {
-      const result = await authApi.register(registrationData);
-      console.log('Registration successful:', result);
+      const response = await authApi.register(registrationData);
+      console.log('Registration successful:', response);
+      
+      // Store the access token
+      if (response.data.token?.access_token) {
+        localStorage.setItem('accessToken', response.data.token.access_token);
+      }
+      
       onComplete();
     } catch (err: any) {
-      setError(err.message);
-      console.error(err);
+      console.error('Registration error:', err);
+      let errorMessage = 'Registration failed';
+      
+      // Handle different error response formats
+      if (err.response?.data) {
+        const detail = err.response.data.detail;
+        if (typeof detail === 'string') {
+          errorMessage = detail;
+        } else if (detail && typeof detail === 'object') {
+          // If it's a validation error object, format it nicely
+          errorMessage = 'Validation error: ' + 
+            (Array.isArray(detail) 
+              ? detail.map(d => d.msg || JSON.stringify(d)).join(', ')
+              : JSON.stringify(detail));
+        } else if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleLoginSubmit = async () => {
+    if (!loginInfo.email || !loginInfo.password) {
+      setError("Please enter both email and password.");
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    // Debug info
+    console.log('Login attempt with:', {
+      email: loginInfo.email,
+      password: loginInfo.password ? '****' : 'empty'
+    });
+
+    try {
+      const response = await authApi.login(loginInfo.email, loginInfo.password);
+      
+      console.log('Login successful:', response.data);
+      
+      // Store the access token
+      localStorage.setItem('accessToken', response.data.access_token);
+      
+      // Proceed to the main app
+      onComplete();
+    } catch (err: any) {
+      console.error('Login error:', err);
+      let errorMessage = 'Login failed';
+      
+      // Handle different error response formats
+      if (err.response?.data) {
+        const detail = err.response.data.detail;
+        if (typeof detail === 'string') {
+          errorMessage = detail;
+        } else if (detail && typeof detail === 'object') {
+          // If it's a validation error object, format it nicely
+          errorMessage = 'Validation error: ' + 
+            (Array.isArray(detail) 
+              ? detail.map(d => d.msg || JSON.stringify(d)).join(', ')
+              : JSON.stringify(detail));
+        } else if (typeof err.response.data === 'string') {
+          errorMessage = err.response.data;
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +151,8 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
   const nextStep = () => {
     if (currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
+    } else if (isLoginMode) {
+      handleLoginSubmit();
     } else {
       handleRegistrationSubmit();
     }
@@ -73,23 +160,69 @@ export function OnboardingFlow({ onComplete }: OnboardingProps) {
 
   const CurrentStepComponent = steps[currentStep].component;
 
+  // Use a more type-safe approach for the component rendering
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0:
+        return <SplashScreen 
+          onNext={nextStep} 
+          isLoading={isLoading} 
+          error={error} 
+          setError={setError} 
+        />;
+      case 1:
+        return <LanguageSelection 
+          onNext={nextStep} 
+          selectedLanguage={selectedLanguage} 
+          setSelectedLanguage={setSelectedLanguage} 
+          isLoading={isLoading} 
+          error={error} 
+          setError={setError} 
+        />;
+      case 2:
+        return <AccountScreen 
+          onNext={nextStep} 
+          userInfo={userInfo} 
+          setUserInfo={setUserInfo} 
+          loginInfo={loginInfo} 
+          setLoginInfo={setLoginInfo} 
+          isLoginMode={isLoginMode} 
+          setIsLoginMode={setIsLoginMode} 
+          isLoading={isLoading} 
+          error={error} 
+          setError={setError} 
+        />;
+      default:
+        return <SplashScreen onNext={nextStep} />;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-yellow-50 flex items-center justify-center p-4">
-      <CurrentStepComponent
-        onNext={nextStep}
-        selectedLanguage={selectedLanguage}
-        setSelectedLanguage={setSelectedLanguage}
-        userInfo={userInfo}
-        setUserInfo={setUserInfo}
-        isLoading={isLoading}
-        error={error}
-      />
+      {renderStep()}
     </div>
   );
 }
 
+// Component interfaces
+interface SplashScreenProps {
+  onNext: () => void;
+  isLoading?: boolean;
+  error?: string | null;
+  setError?: React.Dispatch<React.SetStateAction<string | null>>;
+}
+
+interface LanguageSelectionProps {
+  onNext: () => void;
+  selectedLanguage: string;
+  setSelectedLanguage: React.Dispatch<React.SetStateAction<string>>;
+  isLoading?: boolean;
+  error?: string | null;
+  setError?: React.Dispatch<React.SetStateAction<string | null>>;
+}
+
 // No changes to this component
-function SplashScreen({ onNext }: { onNext: () => void }) {
+function SplashScreen({ onNext }: SplashScreenProps) {
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -149,7 +282,7 @@ function SplashScreen({ onNext }: { onNext: () => void }) {
 }
 
 // No changes to this component
-function LanguageSelection({ onNext, selectedLanguage, setSelectedLanguage }: any) {
+function LanguageSelection({ onNext, selectedLanguage, setSelectedLanguage }: LanguageSelectionProps) {
     const languages = [
         { code: "hi", name: "हिंदी", flag: "🇮🇳", native: "हिंदी" },
         { code: "en", name: "English", flag: "🇺🇸", native: "English" },
@@ -209,7 +342,6 @@ function LanguageSelection({ onNext, selectedLanguage, setSelectedLanguage }: an
 }
 
 
-// UPDATED REGISTRATION COMPONENT
 function Registration({ onNext, userInfo, setUserInfo, isLoading, error }: any) {
   const crops = [ "सोयाबीन (Soybean)", "गेहूं (Wheat)", "मक्का (Maize)", "धान (Rice)", "कपास (Cotton)", "चना (Chickpea)", "सरसों (Mustard)", "गन्ना (Sugarcane)" ];
 
@@ -273,7 +405,7 @@ function Registration({ onNext, userInfo, setUserInfo, isLoading, error }: any) 
 
           <div>
             <Label htmlFor="farmSize">खेत का आकार (Farm Size) <span className="text-gray-500 text-xs">(Optional)</span></Label>
-            <Select onValueChange={(value) => handleInputChange('farmSize', value)}>
+            <Select onValueChange={(value: string) => handleInputChange('farmSize', value)}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="चुनें" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="small">छोटा (1-5 एकड़)</SelectItem>
@@ -285,7 +417,7 @@ function Registration({ onNext, userInfo, setUserInfo, isLoading, error }: any) 
 
           <div>
             <Label htmlFor="primaryCrop">मुख्य फसल (Primary Crop) <span className="text-gray-500 text-xs">(Optional)</span></Label>
-            <Select onValueChange={(value) => handleInputChange('primaryCrop', value)}>
+            <Select onValueChange={(value: string) => handleInputChange('primaryCrop', value)}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="चुनें" /></SelectTrigger>
               <SelectContent>
                 {crops.map((crop) => (<SelectItem key={crop} value={crop}>{crop}</SelectItem>))}

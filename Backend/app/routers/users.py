@@ -11,17 +11,22 @@ from ..dependencies import (
     create_access_token,
     get_current_active_user,
 )
-from ..schemas import UserCreate, User as UserSchema, Token
+from ..schemas.schemas import (
+    UserCreate, 
+    UserResponse, 
+    Token, 
+    UserBase as UserSchema  # Using UserBase as UserSchema for existing endpoints
+)
 from .. import crud
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["Users & Authentication"])
 
-@router.post("/register", response_model=UserSchema, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(user: UserCreate, db = Depends(get_db)):
     """
-    Register a new user in the database.
+    Register a new user in the database and return user info with access token.
     """
     try:
         logger.info(f"Registration attempt for email: {user.email}")
@@ -39,14 +44,36 @@ async def register_user(user: UserCreate, db = Depends(get_db)):
         try:
             new_user = await crud.create_user(db, user=user)
             if not new_user:
+                logger.error("User creation failed: No user record returned")
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail="Failed to create user record"
                 )
+            
+            # Create access token
+            access_token = create_access_token(
+                data={"sub": user.email}
+            )
+            
+            # Create response object
+            response_data = {
+                **new_user,
+                "token": {
+                    "access_token": access_token,
+                    "token_type": "bearer"
+                }
+            }
+            
             logger.info(f"User {user.email} successfully registered with ID {new_user['_id']}")
-            return new_user
+            return UserResponse(**response_data)
+        except ValueError as ve:
+            logger.warning(f"Validation error during user creation: {str(ve)}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(ve)
+            )
         except Exception as e:
-            logger.error(f"Error creating user: {str(e)}")
+            logger.error(f"Error creating user: {str(e)}", exc_info=True)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Database error: {str(e)}"

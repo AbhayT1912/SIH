@@ -8,12 +8,19 @@ import uvicorn
 import asyncio
 import logging
 import sys
+import os
 from app.config import Settings
 from app.main import app
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
+
+# Load settings
+settings = Settings()
 
 class CustomServer(uvicorn.Server):
     """Custom server class to handle graceful shutdown"""
@@ -26,8 +33,8 @@ async def run_app():
     try:
         config = uvicorn.Config(
             app=app,
-            host="127.0.0.1",
-            port=8088,
+            host="localhost",
+            port=8000,
             log_level="debug",
             reload=False,
             workers=1,

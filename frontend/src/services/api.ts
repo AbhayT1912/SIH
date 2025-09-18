@@ -87,11 +87,16 @@ export const authApi = {
         apiClient.post<User>('/register', userData),
     
     login: (email: string, password: string) =>
-        apiClient.post<{ access_token: string, token_type: string }>('/auth/token', 
-            new URLSearchParams({ username: email, password })),
+        apiClient.post<{ access_token: string, token_type: string }>('/token', 
+            new URLSearchParams({ username: email, password }),
+            {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            }),
     
     getCurrentUser: () => 
-        apiClient.get<User>('/auth/me')
+        apiClient.get<User>('/me')
 };
 
 // Farm API

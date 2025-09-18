@@ -81,4 +81,16 @@ export function BotpressChat() {
       window.botpressWebChat.sendEvent({ type: 'toggle' });
     }
   };
+
+  return (
+    <div className="fixed bottom-4 right-4 z-50">
+      <Button 
+        onClick={toggleChat} 
+        className="flex items-center gap-2 bg-primary text-primary-foreground shadow-lg hover:bg-primary/90"
+      >
+        <MessageCircle size={18} />
+        <span>Ask AI</span>
+      </Button>
+    </div>
+  );
 }

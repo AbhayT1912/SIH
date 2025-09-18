@@ -8,7 +8,12 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__rounds=12,
+    bcrypt__ident="2b"
+)
 
 # User CRUD
 async def get_user_by_email(db: AsyncIOMotorDatabase, email: str):
@@ -37,7 +42,8 @@ async def create_user(db: AsyncIOMotorDatabase, user: schemas.UserCreate):
         # Fetch and return the new user
         new_user = await db.users.find_one({"_id": result.inserted_id})
         if new_user:
-            new_user["id"] = str(new_user["_id"])  # Convert ObjectId to string
+            # Convert ObjectId to string and update the document
+            new_user["_id"] = str(new_user["_id"])
             return new_user
         else:
             raise ValueError("Failed to create user")

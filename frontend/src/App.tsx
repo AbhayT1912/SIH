@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { ClerkProvider, SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/clerk-react';
+import { useState, useEffect } from "react";
 import { TopNavigation, WeatherHeader } from "./components/navigation";
 import { OnboardingFlow } from "./components/onboarding";
 import { CalendarPage } from "./components/calendar-page";
@@ -13,6 +12,7 @@ import { EnhancedYieldPredictionPage } from "./components/enhanced-yield-predict
 import { PreciseYieldPrediction } from "./components/precise-yield-prediction";
 import { CropRecommendationsPage } from "./components/crop-recommendations-page";
 import { InventoryPage } from "./components/inventory-page";
+import { LoginPage } from "./components/login-page";
 
 import { LanguageProvider, useLanguage } from "./components/language-context";
 import { 
@@ -51,6 +51,14 @@ type Language = 'hi' | 'en' | 'mr';
 export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('onboarding');
   const [activeVariation, setActiveVariation] = useState(1);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  useEffect(() => {
+    // Check if user is authenticated
+    const token = localStorage.getItem('accessToken');
+    setIsAuthenticated(!!token);
+  }, []);
+
   const handleOnboardingComplete = () => {
     setCurrentPage('dashboard');
   };
@@ -59,19 +67,26 @@ export default function App() {
     setCurrentPage(page);
   };
 
-  // Show onboarding first
-  if (currentPage === 'onboarding') {
-    return <OnboardingFlow onComplete={handleOnboardingComplete} />;
-  }
-
+  // Routes setup
   return (
     <LanguageProvider>
-      <AppContent
-        currentPage={currentPage}
-        activeVariation={activeVariation}
-        setActiveVariation={setActiveVariation}
-        handleNavigation={handleNavigation}
-      />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/*" element={
+          !isAuthenticated ? (
+            <LoginPage />
+          ) : currentPage === 'onboarding' ? (
+            <OnboardingFlow onComplete={handleOnboardingComplete} />
+          ) : (
+            <AppContent
+              currentPage={currentPage}
+              activeVariation={activeVariation}
+              setActiveVariation={setActiveVariation}
+              handleNavigation={handleNavigation}
+            />
+          )
+        } />
+      </Routes>
     </LanguageProvider>
   );
 }
@@ -296,20 +311,7 @@ function TopNavigationWithRouter({ currentPage, onNavigate }: {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Clerk Authentication */}
-          <div className="flex items-center space-x-2">
-            <SignedIn>
-              <UserButton afterSignOutUrl="/" />
-            </SignedIn>
-            <SignedOut>
-              <SignInButton>
-                <Button variant="default" size="sm">
-                  <LogIn className="w-4 h-4 mr-2" />
-                  {t('sign-in')}
-                </Button>
-              </SignInButton>
-            </SignedOut>
-          </div>
+
         </div>
 
         {/* AI Chat Assistant - add it here too */}
