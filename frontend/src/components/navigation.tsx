@@ -160,20 +160,20 @@ export function TopNavigation() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center">
                     <MapPin className="w-4 h-4 mr-1 text-gray-600" />
-                    <span className="text-sm">Itarsi, MP</span>
+                    <span className="text-sm">Bhopal, MP</span>
                   </div>
-                  <div className="flex items-center">
+                  {/* <div className="flex items-center">
                     <CloudRain className="w-4 h-4 mr-1 text-gray-600" />
                     <span className="text-sm font-semibold">26°C</span>
-                  </div>
+                  </div> */}
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-gray-600">Partly Cloudy</span>
+                {/* <div className="flex items-center justify-between"> */}
+                  {/* <span className="text-xs text-gray-600">Partly Cloudy</span>
                   <div className="flex items-center">
                     <Droplets className="w-4 h-4 mr-1 text-blue-500" />
                     <span className="text-xs">60% Humidity</span>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Navigation Links */}
@@ -256,15 +256,15 @@ export function WeatherHeader() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
           <div>
             <h1 className="text-xl sm:text-2xl font-semibold text-gray-800" style={{ fontFamily: 'Poppins' }}>
-              शुभ संध्या, Ramesh! 
+              शुभ प्रभात, Anand! 
             </h1>
             <p className="text-gray-600 flex items-center mt-1 text-sm sm:text-base">
               <MapPin className="w-4 h-4 mr-1" />
-              Itarsi, MP
+              Bhopal, MP
             </p>
           </div>
           
-          <div className="flex items-center justify-between sm:justify-end sm:space-x-6 bg-white/50 p-2 sm:p-0 rounded-lg sm:rounded-none sm:bg-transparent">
+          {/* <div className="flex items-center justify-between sm:justify-end sm:space-x-6 bg-white/50 p-2 sm:p-0 rounded-lg sm:rounded-none sm:bg-transparent">
             <div className="text-left sm:text-right">
               <div className="flex items-center">
                 <CloudRain className="w-5 h-5 text-gray-600 mr-2" />
@@ -279,7 +279,7 @@ export function WeatherHeader() {
               </div>
               <p className="text-xs sm:text-sm text-gray-600">Humidity</p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

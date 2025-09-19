@@ -102,7 +102,7 @@ export function MyFarmPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: 'Poppins' }}>
-                    रमेश कुमार का खेत
+                    आनंद पटिदार का खेत
                   </h1>
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center">
@@ -111,7 +111,7 @@ export function MyFarmPage() {
                     </div>
                     <div className="flex items-center">
                       <MapPin className="w-4 h-4 mr-2" />
-                      <span>इटारसी, मध्य प्रदेश</span>
+                      <span>भोपाल, मध्य प्रदेश</span>
                     </div>
                   </div>
                 </div>
